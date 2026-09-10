@@ -20,7 +20,7 @@ public class ProdutoController {
         this.produtoService = produtoService;
     }
 
-    @GetMapping
+    @GetMapping("/unidades-medida")
     public List<UnidadeMedida> listarUnidadesMedida(){
         return List.of(UnidadeMedida.values());
     }
