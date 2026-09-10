@@ -1,11 +1,14 @@
 package ponto.agro.desenvolvimento.controller;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import ponto.agro.desenvolvimento.models.Produto;
+import ponto.agro.desenvolvimento.models.enums.UnidadeMedida;
 import ponto.agro.desenvolvimento.services.ProdutoService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/produtos")
@@ -17,9 +20,14 @@ public class ProdutoController {
         this.produtoService = produtoService;
     }
 
+    @GetMapping
+    public List<UnidadeMedida> listarUnidadesMedida(){
+        return List.of(UnidadeMedida.values());
+    }
 
     @PostMapping
-    public Produto salvarProduto(@RequestBody Produto produto){
-        return produtoService.salvar(produto);
+    public ResponseEntity<Produto> salvarProduto(@Valid @RequestBody Produto produto){
+        Produto produtoSalvo = produtoService.salvar(produto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(produtoSalvo);
     }
 }

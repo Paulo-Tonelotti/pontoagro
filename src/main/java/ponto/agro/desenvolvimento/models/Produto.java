@@ -1,6 +1,8 @@
 package ponto.agro.desenvolvimento.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import ponto.agro.desenvolvimento.models.enums.UnidadeMedida;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -14,32 +16,51 @@ public class Produto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "O nome é obrigatório")
     @Column(nullable = false)
     private String nome;
 
+    @NotNull(message = "O preço é obrigatório")
+    @Positive(message = "O preço deve ser maior que zero")
     @Column(nullable = false)
     private BigDecimal preco;
 
+    @NotNull(message = "A unidade de medida é obrigatória")
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String unidadeMedida;
+    private UnidadeMedida unidadeMedida;
 
     @Column(nullable = false, updatable = false)
     private Instant dataCadastro;
 
+    @NotNull(message = "A data de validade é obrigatória")
+    @Future(message = "A data de validade deve ser uma data futura")
     @Column(nullable = false)
     private LocalDateTime dataValidade;
 
+    @NotNull(message = "A quantidade é obrigatória")
+    @PositiveOrZero(message = "A quantidade deve ser positiva ou zero")
     @Column(nullable = false)
     private Integer quantidade;
 
-    @Column(nullable = false)
+    @NotBlank(message = "O código de barras é obrigatório")
+    @Column(nullable = false, unique = true)
     private String codigoBarra;
 
+    @NotNull(message = "A categoria é obrigatória")
     @ManyToOne
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
     public Produto() {}
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Categoria getCategoria() {
         return categoria;
@@ -65,11 +86,11 @@ public class Produto {
         this.preco = preco;
     }
 
-    public String getUnidadeMedida() {
+    public UnidadeMedida getUnidadeMedida() {
         return unidadeMedida;
     }
 
-    public void setUnidadeMedida(String unidadeMedida) {
+    public void setUnidadeMedida(UnidadeMedida unidadeMedida) {
         this.unidadeMedida = unidadeMedida;
     }
 
@@ -117,4 +138,5 @@ public class Produto {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
 }

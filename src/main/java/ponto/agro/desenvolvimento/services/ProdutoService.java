@@ -2,11 +2,15 @@ package ponto.agro.desenvolvimento.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import ponto.agro.desenvolvimento.exceptions.RegraDeNegocioException;
 import ponto.agro.desenvolvimento.models.Categoria;
 import ponto.agro.desenvolvimento.models.Produto;
+import ponto.agro.desenvolvimento.models.enums.UnidadeMedida;
 import ponto.agro.desenvolvimento.repositories.CategoriaRepository;
 import ponto.agro.desenvolvimento.repositories.ProdutoRepository;
+
+import java.util.List;
 
 @Service
 public class ProdutoService {
