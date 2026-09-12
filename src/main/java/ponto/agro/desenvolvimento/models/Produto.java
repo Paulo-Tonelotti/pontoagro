@@ -6,7 +6,7 @@ import ponto.agro.desenvolvimento.models.enums.UnidadeMedida;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
@@ -36,7 +36,7 @@ public class Produto {
     @NotNull(message = "A data de validade é obrigatória")
     @Future(message = "A data de validade deve ser uma data futura")
     @Column(nullable = false)
-    private LocalDateTime dataValidade;
+    private LocalDate dataValidade;
 
     @NotNull(message = "A quantidade é obrigatória")
     @PositiveOrZero(message = "A quantidade deve ser positiva ou zero")
@@ -103,11 +103,11 @@ public class Produto {
         this.dataCadastro = Instant.now();
     }
 
-    public LocalDateTime getDataValidade() {
+    public LocalDate getDataValidade() {
         return dataValidade;
     }
 
-    public void setDataValidade(LocalDateTime dataValidade) {
+    public void setDataValidade(LocalDate dataValidade) {
         this.dataValidade = dataValidade;
     }
 

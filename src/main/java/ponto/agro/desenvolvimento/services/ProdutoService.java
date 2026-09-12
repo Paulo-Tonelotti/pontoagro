@@ -2,6 +2,9 @@ package ponto.agro.desenvolvimento.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import ponto.agro.desenvolvimento.dto.ProdutoRequestDTO;
+import ponto.agro.desenvolvimento.dto.ProdutoResponseDTO;
 import ponto.agro.desenvolvimento.exceptions.RecursoNaoEncontradoException;
 import ponto.agro.desenvolvimento.exceptions.RegraDeNegocioException;
 import ponto.agro.desenvolvimento.models.Categoria;
@@ -23,21 +26,44 @@ public class ProdutoService {
         this.categoriaRepository = categoriaRepository;
     }
 
-    @Transactional(rollbackFor = RegraDeNegocioException.class)
-    public Produto salvar(Produto produto){
-        if(produtoRepository.existsByCodigoBarra(produto.getCodigoBarra())){
-            throw new RegraDeNegocioException("Produto já cadastrado com esse codigo de barras");
-        }
 
-        if(produto.getCategoria() == null || produto.getCategoria().getId() == null){
+    private void preencherDadosProduto(ProdutoRequestDTO produtoDto, Produto produto, Categoria categoria) {
+        produto.setNome(produtoDto.nome());
+        produto.setPreco(produtoDto.preco());
+        produto.setQuantidade(produtoDto.quantidade());
+        produto.setDataValidade(produtoDto.dataValidade());
+        produto.setUnidadeMedida(produtoDto.unidadeMedida());
+        produto.setCodigoBarra(produtoDto.codigoBarra());
+        produto.setCategoria(categoria);
+    }
+
+
+    private Categoria buscarCategoriaPorId(Long categoriaId) {
+        if(categoriaId == null){
             throw new RegraDeNegocioException("A categoria do produto é obrigatória");
         }
 
-        Categoria categoria = categoriaRepository.findById(produto.getCategoria().getId())
+        return categoriaRepository.findById(categoriaId)
                 .orElseThrow(() -> new RegraDeNegocioException("Categoria não encontrada"));
 
-        produto.setCategoria(categoria);
-        return produtoRepository.save(produto);
+    }
+
+    @Transactional(rollbackFor = RegraDeNegocioException.class)
+    public ProdutoResponseDTO salvar(ProdutoRequestDTO dto){
+        if(produtoRepository.existsByCodigoBarra(dto.codigoBarra())){
+            throw new RegraDeNegocioException("Produto já cadastrado com esse codigo de barras");
+        }
+
+        Categoria categoria = buscarCategoriaPorId(dto.categoriaId());
+
+        Produto produto = new Produto();
+        preencherDadosProduto(dto, produto, categoria);
+
+
+        Produto produtoSalvo = produtoRepository.save(produto);
+
+
+        return new ProdutoResponseDTO(produtoSalvo);
 
     }
 
