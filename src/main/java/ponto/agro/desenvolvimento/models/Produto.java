@@ -44,7 +44,7 @@ public class Produto {
     private Integer quantidade;
 
     @NotBlank(message = "O código de barras é obrigatório")
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, updatable = false)
     private String codigoBarra;
 
     @NotNull(message = "A categoria é obrigatória")
@@ -52,7 +52,8 @@ public class Produto {
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
-    public Produto() {}
+    public Produto() {
+    }
 
     public Long getId() {
         return id;
@@ -129,7 +130,8 @@ public class Produto {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass())
+            return false;
         Produto produto = (Produto) o;
         return Objects.equals(id, produto.id);
     }

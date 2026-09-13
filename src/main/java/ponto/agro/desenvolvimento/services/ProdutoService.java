@@ -33,7 +33,6 @@ public class ProdutoService {
         produto.setQuantidade(produtoDto.quantidade());
         produto.setDataValidade(produtoDto.dataValidade());
         produto.setUnidadeMedida(produtoDto.unidadeMedida());
-        produto.setCodigoBarra(produtoDto.codigoBarra());
         produto.setCategoria(categoria);
     }
 
@@ -58,18 +57,27 @@ public class ProdutoService {
 
         Produto produto = new Produto();
         preencherDadosProduto(dto, produto, categoria);
+        produto.setCodigoBarra(dto.codigoBarra());
+
 
 
         Produto produtoSalvo = produtoRepository.save(produto);
-
-
         return new ProdutoResponseDTO(produtoSalvo);
 
     }
 
     @Transactional(readOnly = true)
-    public List<Produto> buscarTodos(){
-        return produtoRepository.findAll();
+    public List<ProdutoResponseDTO> buscarTodos(){
+        return produtoRepository.findAll()
+                .stream()
+                .map(ProdutoResponseDTO::new)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ProdutoResponseDTO buscarPorIdDto(Long id) {
+        Produto produto = buscarPorId(id);
+        return new ProdutoResponseDTO(produto);
     }
 
     @Transactional(readOnly = true)
@@ -80,24 +88,15 @@ public class ProdutoService {
     }
 
     @Transactional(rollbackFor = RegraDeNegocioException.class)
-    public Produto atualizarProduto(Long id, Produto produtoAtualizado){
+    public ProdutoResponseDTO atualizarProduto(Long id, ProdutoRequestDTO dto){
         Produto produtoAntigo = buscarPorId(id);
 
-        if(produtoAtualizado.getCategoria() == null || produtoAtualizado.getCategoria().getId() == null){
-            throw new RegraDeNegocioException("A categoria do produto é obrigatória");
-        }
+        Categoria categoria = buscarCategoriaPorId(dto.categoriaId());
+        preencherDadosProduto(dto, produtoAntigo, categoria);
 
-        Categoria categoria = categoriaRepository.findById(produtoAtualizado.getCategoria().getId())
-                .orElseThrow(() -> new RegraDeNegocioException("Categoria não encontrada"));
-
-        produtoAntigo.setNome(produtoAtualizado.getNome());
-        produtoAntigo.setPreco(produtoAtualizado.getPreco());
-        produtoAntigo.setQuantidade(produtoAtualizado.getQuantidade());
-        produtoAntigo.setUnidadeMedida(produtoAtualizado.getUnidadeMedida());
-        produtoAntigo.setDataValidade(produtoAtualizado.getDataValidade());
-        produtoAntigo.setCategoria(categoria);
-
-        return produtoRepository.save(produtoAntigo);
+        Produto produtoAtualizado = produtoRepository.save(produtoAntigo);
+        
+        return new ProdutoResponseDTO(produtoAtualizado);
     }
 
     @Transactional(rollbackFor = RegraDeNegocioException.class)
