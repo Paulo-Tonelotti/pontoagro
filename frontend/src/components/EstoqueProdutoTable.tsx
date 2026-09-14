@@ -1,5 +1,17 @@
 import { useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight, PackageSearch, Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
+import {
+  CalendarX2,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  PackagePlus,
+  PackageSearch,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+} from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -8,7 +20,9 @@ import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { usePaginacao } from '@/hooks/usePaginacao'
+import { estaVencido, statusEstoque, type FiltroEstoque } from '@/lib/estoque'
 import { formatarData, formatarMoeda } from '@/lib/format'
+import { cn } from '@/lib/utils'
 import type { ProdutoResponseDTO } from '@/types/api'
 
 const ITENS_POR_PAGINA = 8
@@ -21,7 +35,16 @@ interface EstoqueProdutoTableProps {
   onNovoProduto: () => void
   onEditar: (produto: ProdutoResponseDTO) => void
   onExcluir: (produto: ProdutoResponseDTO) => void
+  onEntradaEstoque: (produto: ProdutoResponseDTO) => void
+  onVerHistorico: (produto: ProdutoResponseDTO) => void
 }
+
+const FILTROS: { valor: FiltroEstoque; rotulo: string }[] = [
+  { valor: 'todos', rotulo: 'Todos' },
+  { valor: 'disponivel', rotulo: 'Disponíveis' },
+  { valor: 'esgotado', rotulo: 'Esgotados' },
+  { valor: 'vencido', rotulo: 'Fora da validade' },
+]
 
 export function EstoqueProdutoTable({
   produtos,
@@ -31,19 +54,39 @@ export function EstoqueProdutoTable({
   onNovoProduto,
   onEditar,
   onExcluir,
+  onEntradaEstoque,
+  onVerHistorico,
 }: EstoqueProdutoTableProps) {
   const [busca, setBusca] = useState('')
+  const [filtro, setFiltro] = useState<FiltroEstoque>('todos')
+
+  const contagens = useMemo(
+    () => ({
+      todos: produtos.length,
+      disponivel: produtos.filter((p) => statusEstoque(p.quantidade) !== 'zerado').length,
+      esgotado: produtos.filter((p) => statusEstoque(p.quantidade) === 'zerado').length,
+      vencido: produtos.filter((p) => estaVencido(p.dataValidade)).length,
+    }),
+    [produtos],
+  )
 
   const produtosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase()
-    if (!termo) return produtos
-    return produtos.filter(
-      (p) =>
+    return produtos.filter((p) => {
+      const combinaBusca =
+        !termo ||
         p.nome.toLowerCase().includes(termo) ||
         p.codigoBarra.toLowerCase().includes(termo) ||
-        (p.categoriaNome ?? '').toLowerCase().includes(termo),
-    )
-  }, [produtos, busca])
+        (p.categoriaNome ?? '').toLowerCase().includes(termo)
+
+      if (!combinaBusca) return false
+
+      if (filtro === 'disponivel') return statusEstoque(p.quantidade) !== 'zerado'
+      if (filtro === 'esgotado') return statusEstoque(p.quantidade) === 'zerado'
+      if (filtro === 'vencido') return estaVencido(p.dataValidade)
+      return true
+    })
+  }, [produtos, busca, filtro])
 
   const { pagina, setPagina, totalPaginas, itensPagina } = usePaginacao(produtosFiltrados, ITENS_POR_PAGINA)
 
@@ -62,6 +105,24 @@ export function EstoqueProdutoTable({
         <Button onClick={onNovoProduto}>
           <Plus /> Novo produto
         </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {FILTROS.map((f) => (
+          <button
+            key={f.valor}
+            type="button"
+            onClick={() => setFiltro(f.valor)}
+            className={cn(
+              'rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
+              filtro === f.valor
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-border bg-card text-muted-foreground hover:bg-accent',
+            )}
+          >
+            {f.rotulo} <span className="opacity-75">({contagens[f.valor]})</span>
+          </button>
+        ))}
       </div>
 
       <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
@@ -118,39 +179,60 @@ export function EstoqueProdutoTable({
 
             {!carregando &&
               !erro &&
-              itensPagina.map((produto) => (
-                <TableRow key={produto.id}>
-                  <TableCell className="max-w-56 truncate font-medium whitespace-normal">{produto.nome}</TableCell>
-                  <TableCell>
-                    {produto.categoriaNome ? (
-                      <Badge variant="outline">{produto.categoriaNome}</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>{formatarMoeda(produto.preco)}</TableCell>
-                  <TableCell className="text-muted-foreground">{produto.unidadeMedida.descricao}</TableCell>
-                  <TableCell className="text-muted-foreground">{formatarData(produto.dataValidade)}</TableCell>
-                  <TableCell>
-                    <EstoqueBadge quantidade={produto.quantidade} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button variant="outline" size="icon" onClick={() => onEditar(produto)}>
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => onExcluir(produto)}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              itensPagina.map((produto) => {
+                const vencido = estaVencido(produto.dataValidade)
+                return (
+                  <TableRow key={produto.id}>
+                    <TableCell className="max-w-56 truncate font-medium whitespace-normal">{produto.nome}</TableCell>
+                    <TableCell>
+                      {produto.categoriaNome ? (
+                        <Badge variant="outline">{produto.categoriaNome}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>{formatarMoeda(produto.preco)}</TableCell>
+                    <TableCell className="text-muted-foreground">{produto.unidadeMedida.descricao}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className={cn('text-muted-foreground', vencido && 'text-destructive')}>
+                          {formatarData(produto.dataValidade)}
+                        </span>
+                        {vencido && (
+                          <Badge variant="destructive" className="w-fit">
+                            <CalendarX2 /> Vencido
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <EstoqueBadge quantidade={produto.quantidade} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="outline" size="icon" onClick={() => onEntradaEstoque(produto)} title="Entrada de estoque">
+                          <PackagePlus className="size-4" />
+                        </Button>
+                        <Button variant="outline" size="icon" onClick={() => onVerHistorico(produto)} title="Histórico de estoque">
+                          <History className="size-4" />
+                        </Button>
+                        <Button variant="outline" size="icon" onClick={() => onEditar(produto)} title="Editar">
+                          <Pencil className="size-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => onExcluir(produto)}
+                          title="Excluir"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
           </TableBody>
         </Table>
       </div>

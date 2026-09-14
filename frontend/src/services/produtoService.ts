@@ -1,5 +1,11 @@
 import { api } from '@/lib/api'
-import type { ProdutoRequestDTO, ProdutoResponseDTO, UnidadeMedida } from '@/types/api'
+import type {
+  EntradaEstoqueRequestDTO,
+  MovimentacaoEstoqueResponseDTO,
+  ProdutoRequestDTO,
+  ProdutoResponseDTO,
+  UnidadeMedida,
+} from '@/types/api'
 
 export const produtoService = {
   async listar(): Promise<ProdutoResponseDTO[]> {
@@ -28,6 +34,21 @@ export const produtoService = {
 
   async listarUnidadesMedida(): Promise<UnidadeMedida[]> {
     const { data } = await api.get<UnidadeMedida[]>('/produtos/unidades-medida')
+    return data
+  },
+
+  async buscarPorCodigoBarra(codigoBarra: string): Promise<ProdutoResponseDTO> {
+    const { data } = await api.get<ProdutoResponseDTO>(`/produtos/codigo-barras/${encodeURIComponent(codigoBarra)}`)
+    return data
+  },
+
+  async darEntradaEstoque(id: number, dto: EntradaEstoqueRequestDTO): Promise<ProdutoResponseDTO> {
+    const { data } = await api.post<ProdutoResponseDTO>(`/produtos/${id}/entradas`, dto)
+    return data
+  },
+
+  async listarMovimentacoes(id: number): Promise<MovimentacaoEstoqueResponseDTO[]> {
+    const { data } = await api.get<MovimentacaoEstoqueResponseDTO[]>(`/produtos/${id}/movimentacoes`)
     return data
   },
 }

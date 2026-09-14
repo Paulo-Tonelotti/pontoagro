@@ -13,9 +13,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/produtos': 'http://localhost:8085',
-      '/vendas': 'http://localhost:8085',
-      '/categorias': 'http://localhost:8085',
+      '/api': {
+        target: 'http://localhost:8085',
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
     },
   },
 })

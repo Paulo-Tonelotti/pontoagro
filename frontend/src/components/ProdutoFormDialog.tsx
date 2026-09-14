@@ -137,15 +137,20 @@ export function ProdutoFormDialog({ open, onOpenChange, produto, categorias, onS
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="quantidade">Quantidade</Label>
+              <Label htmlFor="quantidade">Quantidade {editando && '(inicial)'}</Label>
               <Input
                 id="quantidade"
                 type="number"
                 min="0"
+                disabled={editando}
                 value={form.quantidade}
                 onChange={(e) => setForm({ ...form, quantidade: e.target.value })}
               />
-              {erros.quantidade && <p className="text-xs text-destructive">{erros.quantidade}</p>}
+              {editando ? (
+                <p className="text-xs text-muted-foreground">Use "Entrada de estoque" para adicionar unidades.</p>
+              ) : (
+                erros.quantidade && <p className="text-xs text-destructive">{erros.quantidade}</p>
+              )}
             </div>
           </div>
 

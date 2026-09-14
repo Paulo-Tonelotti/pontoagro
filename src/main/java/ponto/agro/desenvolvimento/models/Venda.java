@@ -13,15 +13,18 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import ponto.agro.desenvolvimento.models.enums.FormaPagamento;
 import ponto.agro.desenvolvimento.models.enums.StatusVenda;
 
-@Entity 
+@Entity
 @Table(name = "tb_vendas")
 public class Venda {
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -29,11 +32,32 @@ public class Venda {
     private BigDecimal valorTotal;
 
     @Column(nullable = false)
+    private BigDecimal desconto = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private BigDecimal acrescimo = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    private FormaPagamento formaPagamento;
+
+    private BigDecimal valorRecebido;
+
+    private BigDecimal troco;
+
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
+
+    @ManyToOne
+    @JoinColumn(name = "atendente_id")
+    private Operador atendente;
+
+    @Column(nullable = false)
     private LocalDateTime dataVenda;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusVenda status; 
+    private StatusVenda status;
 
     @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemVenda> itens = new ArrayList<>();
@@ -53,6 +77,62 @@ public class Venda {
 
     public void setValorTotal(BigDecimal valorTotal) {
         this.valorTotal = valorTotal;
+    }
+
+    public BigDecimal getDesconto() {
+        return desconto;
+    }
+
+    public void setDesconto(BigDecimal desconto) {
+        this.desconto = desconto;
+    }
+
+    public BigDecimal getAcrescimo() {
+        return acrescimo;
+    }
+
+    public void setAcrescimo(BigDecimal acrescimo) {
+        this.acrescimo = acrescimo;
+    }
+
+    public FormaPagamento getFormaPagamento() {
+        return formaPagamento;
+    }
+
+    public void setFormaPagamento(FormaPagamento formaPagamento) {
+        this.formaPagamento = formaPagamento;
+    }
+
+    public BigDecimal getValorRecebido() {
+        return valorRecebido;
+    }
+
+    public void setValorRecebido(BigDecimal valorRecebido) {
+        this.valorRecebido = valorRecebido;
+    }
+
+    public BigDecimal getTroco() {
+        return troco;
+    }
+
+    public void setTroco(BigDecimal troco) {
+        this.troco = troco;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
+    }
+
+    public Operador getAtendente() {
+        return atendente;
+    }
+
+    public void setAtendente(Operador atendente) {
+        this.atendente = atendente;
     }
 
     public LocalDateTime getDataVenda() {
