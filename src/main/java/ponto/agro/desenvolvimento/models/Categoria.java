@@ -1,6 +1,7 @@
 package ponto.agro.desenvolvimento.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.Objects;
 
@@ -12,9 +13,11 @@ public class Categoria {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @NotBlank(message = "O nome é obrigatório")
+    @Column(nullable = false, unique = true)
     private String nome;
 
+    @NotBlank(message = "A descrição é obrigatória")
     @Column(nullable = false)
     private String descricao;
 
