@@ -10,8 +10,11 @@ import ponto.agro.desenvolvimento.dto.VendaResponseDTO;
 import ponto.agro.desenvolvimento.services.VendaService;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -36,6 +39,18 @@ public class VendaController {
                 .buildAndExpand(response.id())
                 .toUri();
         return ResponseEntity.created(uri).body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<VendaResponseDTO> buscar(@PathVariable Long id){
+        VendaResponseDTO response = vendaService.buscarPorIdDto(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<VendaResponseDTO>> listarProdutos(){
+        List<VendaResponseDTO> vendas = vendaService.buscarTodos();
+        return ResponseEntity.ok(vendas);
     }
     
 }

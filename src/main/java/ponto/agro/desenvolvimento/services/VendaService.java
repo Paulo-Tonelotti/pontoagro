@@ -1,6 +1,7 @@
 package ponto.agro.desenvolvimento.services;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,39 @@ public class VendaService {
     public VendaService(VendaRepository vendaRepository, ProdutoRepository produtoRepository) {
         this.vendaRepository = vendaRepository;
         this.produtoRepository = produtoRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<VendaResponseDTO> buscarTodos() {
+        return vendaRepository.findAll()
+        .stream()
+        .map(VendaResponseDTO::new)
+        .toList();
+
+    }
+
+    @Transactional(readOnly = true)
+    private Venda buscarVendaPorId(Long vendaId) {
+        if(vendaId == null){
+            throw new RegraDeNegocioException("A categoria do produto é obrigatória");
+        }
+
+        return vendaRepository.findById(vendaId)
+                .orElseThrow(() -> new RegraDeNegocioException("Categoria não encontrada"));
+
+    }
+
+    @Transactional(readOnly = true)
+    public VendaResponseDTO buscarPorIdDto(Long id) {
+        Venda venda = buscarPorId(id);
+        return new VendaResponseDTO(venda);
+    }
+
+    @Transactional(readOnly = true)
+    public Venda buscarPorId(Long id){
+        return vendaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("O produto com ID informado não foi encontrado"));
+
     }
 
     @Transactional 
